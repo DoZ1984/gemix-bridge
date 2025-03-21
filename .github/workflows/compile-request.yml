@@ -12,6 +12,9 @@ jobs:
     steps:
       - name: Checkout del repositorio
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
       
       - name: Configurar permisos de ejecución
         run: |
@@ -33,4 +36,9 @@ jobs:
           git add results/
           git add requests/history/
           git commit -m "Resultados de compilación para solicitud" || echo "No hay cambios para commit"
-          git push
+      
+      - name: Push cambios
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
