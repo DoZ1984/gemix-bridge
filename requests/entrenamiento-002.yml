@@ -1,0 +1,168 @@
+id: "entrenamiento-20250321-002"
+type: "compile"
+source_file: "examples/entrenamiento_avanzado.prg"
+source_code: |
+  // Programa de entrenamiento avanzado en Gemix
+  // Objetivo: Probar estructuras, arrays y características más avanzadas
+  
+  PROGRAM entrenamiento_avanzado;
+  
+  GLOBAL
+    // Constantes
+    CONST
+      MAX_PARTICULAS = 20;
+      GRAVEDAD = 0.5;
+      ANCHO_PANTALLA = 640;
+      ALTO_PANTALLA = 480;
+    END
+    
+    // Estructura para partículas
+    STRUCT tParticula
+      int x, y;           // Posición
+      int vx, vy;         // Velocidad
+      int color;          // Color
+      int radio;          // Tamaño
+      int tiempo_vida;    // Tiempo de vida
+      int activa;         // Si está activa
+    END
+    
+    // Array de partículas
+    tParticula particulas[MAX_PARTICULAS];
+    
+    // Variables globales
+    int contador = 0;
+    int particulas_activas = 0;
+  
+  PRIVATE
+    // Función para inicializar una partícula
+    FUNCTION inicializar_particula(int indice)
+    BEGIN
+      particulas[indice].x = ANCHO_PANTALLA / 2;
+      particulas[indice].y = ALTO_PANTALLA / 2;
+      particulas[indice].vx = rand(-10, 10);
+      particulas[indice].vy = rand(-15, -5);
+      particulas[indice].color = rand(1, 15);
+      particulas[indice].radio = rand(3, 10);
+      particulas[indice].tiempo_vida = rand(50, 150);
+      particulas[indice].activa = 1;
+    END
+    
+    // Función para actualizar una partícula
+    FUNCTION actualizar_particula(int indice)
+    BEGIN
+      // Si la partícula no está activa, salir
+      IF (NOT particulas[indice].activa)
+        RETURN;
+      END
+      
+      // Actualizar posición
+      particulas[indice].x += particulas[indice].vx;
+      particulas[indice].y += particulas[indice].vy;
+      
+      // Aplicar gravedad
+      particulas[indice].vy += GRAVEDAD;
+      
+      // Rebotar en los bordes laterales
+      IF (particulas[indice].x < particulas[indice].radio OR 
+          particulas[indice].x > ANCHO_PANTALLA - particulas[indice].radio)
+        particulas[indice].vx = -particulas[indice].vx * 0.8;
+      END
+      
+      // Rebotar en el suelo
+      IF (particulas[indice].y > ALTO_PANTALLA - particulas[indice].radio)
+        particulas[indice].y = ALTO_PANTALLA - particulas[indice].radio;
+        particulas[indice].vy = -particulas[indice].vy * 0.7;
+        
+        // Si la velocidad es muy baja, detener
+        IF (abs(particulas[indice].vy) < 2)
+          particulas[indice].vy = 0;
+        END
+      END
+      
+      // Decrementar tiempo de vida
+      particulas[indice].tiempo_vida--;
+      
+      // Comprobar si la partícula ha muerto
+      IF (particulas[indice].tiempo_vida <= 0)
+        particulas[indice].activa = 0;
+        particulas_activas--;
+      END
+    END
+    
+    // Función para dibujar una partícula
+    FUNCTION dibujar_particula(int indice)
+    BEGIN
+      // Si la partícula no está activa, salir
+      IF (NOT particulas[indice].activa)
+        RETURN;
+      END
+      
+      // Dibujar un círculo
+      circle(particulas[indice].x, 
+             particulas[indice].y, 
+             particulas[indice].radio);
+             
+      // Cambiar color
+      set_color(particulas[indice].color);
+      
+      // Rellenar círculo
+      circle_filled(particulas[indice].x, 
+                   particulas[indice].y, 
+                   particulas[indice].radio - 1);
+    END
+    
+    // Función para crear una nueva partícula
+    FUNCTION crear_particula()
+    BEGIN
+      // Buscar una posición libre en el array
+      FROM i = 0 TO MAX_PARTICULAS - 1
+        IF (NOT particulas[i].activa)
+          inicializar_particula(i);
+          particulas_activas++;
+          RETURN;
+        END
+      END
+    END
+  
+  BEGIN
+    // Configuración de la pantalla
+    set_mode(ANCHO_PANTALLA, ALTO_PANTALLA);
+    set_title("Sistema de Partículas en Gemix");
+    
+    // Inicializar partículas
+    FROM i = 0 TO MAX_PARTICULAS - 1
+      particulas[i].activa = 0;
+    END
+    
+    // Bucle principal
+    WHILE (NOT key(_ESC))
+      // Limpiar pantalla
+      clear_screen();
+      
+      // Incrementar contador
+      contador++;
+      
+      // Crear partículas cada cierto tiempo
+      IF (contador % 10 == 0 AND particulas_activas < MAX_PARTICULAS)
+        crear_particula();
+      END
+      
+      // Actualizar y dibujar partículas
+      FROM i = 0 TO MAX_PARTICULAS - 1
+        actualizar_particula(i);
+        dibujar_particula(i);
+      END
+      
+      // Mostrar información
+      set_color(15);
+      write(10, 10, 0, "Sistema de Partículas");
+      write(10, 30, 0, "Partículas activas: " + particulas_activas);
+      write(10, 50, 0, "Contador: " + contador);
+      write(10, ALTO_PANTALLA - 20, 0, "Pulsa ESC para salir");
+      
+      FRAME;
+    END
+  END
+options:
+  verbose: true
+  timeout: 30
