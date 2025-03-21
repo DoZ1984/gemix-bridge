@@ -1,0 +1,159 @@
+id: "caracteristicas-20250321-004"
+type: "compile"
+source_file: "examples/caracteristicas_adicionales.prg"
+source_code: |
+  // Programa para probar características adicionales de Gemix
+  // Incluye: procesos, manejo de archivos y más
+  
+  PROGRAM caracteristicas_adicionales;
+  
+  GLOBAL
+    // Constantes
+    CONST
+      MAX_PROCESOS = 10;
+      ANCHO = 640;
+      ALTO = 480;
+    END
+    
+    // Variables globales
+    int proceso_actual = 0;
+    int total_procesos = 0;
+    int archivo_log;
+    
+    // Estructura para un punto
+    STRUCT tPunto
+      int x, y;
+      int color;
+      int activo;
+    END
+    
+    // Variables para controlar gráficos
+    int grafico1;
+  
+  // Proceso para manejar un punto que se mueve
+  PROCESS mover_punto(int id, int x_inicial, int y_inicial, int color_inicial)
+  PRIVATE
+    tPunto punto;
+    int velocidad_x, velocidad_y;
+    int tiempo_vida;
+  BEGIN
+    // Inicializar punto
+    punto.x = x_inicial;
+    punto.y = y_inicial;
+    punto.color = color_inicial;
+    punto.activo = 1;
+    
+    // Inicializar velocidades aleatorias
+    velocidad_x = rand(-5, 5);
+    velocidad_y = rand(-5, 5);
+    
+    // Tiempo de vida aleatorio
+    tiempo_vida = rand(100, 300);
+    
+    // Escribir en el archivo de log
+    fwrite(archivo_log, "Proceso " + id + " iniciado en posición (" + x_inicial + "," + y_inicial + ")\\n");
+    
+    // Bucle principal del proceso
+    WHILE (punto.activo AND tiempo_vida > 0)
+      // Actualizar posición
+      punto.x += velocidad_x;
+      punto.y += velocidad_y;
+      
+      // Rebotar en los bordes
+      IF (punto.x < 0 OR punto.x > ANCHO)
+        velocidad_x = -velocidad_x;
+        punto.x = clamp(punto.x, 0, ANCHO);
+      END
+      
+      IF (punto.y < 0 OR punto.y > ALTO)
+        velocidad_y = -velocidad_y;
+        punto.y = clamp(punto.y, 0, ALTO);
+      END
+      
+      // Dibujar punto
+      put_pixel(punto.x, punto.y, punto.color);
+      
+      // Mostrar ID encima del punto
+      write_small(punto.x, punto.y - 10, punto.color, "ID:" + id);
+      
+      // Decrementar tiempo de vida
+      tiempo_vida--;
+      
+      // Cambiar color si se presiona una tecla específica
+      IF (key(id + 48) AND id < 10) // 48 es el código ASCII para '0'
+        punto.color = rand(1, 15);
+        fwrite(archivo_log, "Proceso " + id + " cambió de color\\n");
+      END
+      
+      FRAME;
+    END
+    
+    // Escribir en el archivo de log
+    fwrite(archivo_log, "Proceso " + id + " finalizado\\n");
+    
+    // Señalar que el proceso ha terminado
+    total_procesos--;
+  END
+  
+  PRIVATE
+    // Función para limitar un valor entre min y max
+    FUNCTION clamp(int valor, int min_val, int max_val)
+    BEGIN
+      IF (valor < min_val) valor = min_val; END
+      IF (valor > max_val) valor = max_val; END
+      RETURN valor;
+    END
+    
+    // Función para crear un nuevo proceso
+    FUNCTION crear_proceso()
+    BEGIN
+      IF (total_procesos < MAX_PROCESOS)
+        proceso_actual++;
+        total_procesos++;
+        mover_punto(proceso_actual, rand(50, ANCHO-50), rand(50, ALTO-50), rand(1, 15));
+      END
+    END
+  
+  BEGIN
+    // Configuración de la pantalla
+    set_mode(ANCHO, ALTO);
+    set_title("Características Adicionales de Gemix");
+    
+    // Cargar un gráfico (esto es hipotético, depende de las funciones reales de Gemix)
+    // grafico1 = load_png("recursos/imagen.png");
+    
+    // Abrir archivo de log
+    archivo_log = fopen("procesos.log", O_WRITE);
+    fwrite(archivo_log, "=== Inicio del programa ===\\n");
+    
+    // Mensaje inicial
+    write(ANCHO/2, 20, 15, "Características Adicionales de Gemix");
+    write(ANCHO/2, 40, 14, "Pulsa ESPACIO para crear un proceso");
+    write(ANCHO/2, 60, 14, "Pulsa 1-9 para cambiar el color del proceso correspondiente");
+    write(ANCHO/2, 80, 14, "Pulsa ESC para salir");
+    
+    // Bucle principal
+    WHILE (NOT key(_ESC))
+      // Limpiar pantalla
+      clear_screen();
+      
+      // Mostrar información
+      write(ANCHO/2, 20, 15, "Características Adicionales de Gemix");
+      write(ANCHO/2, 40, 14, "Procesos activos: " + total_procesos + "/" + MAX_PROCESOS);
+      
+      // Crear un nuevo proceso al presionar espacio
+      IF (key(_SPACE) AND total_procesos < MAX_PROCESOS)
+        crear_proceso();
+        WHILE (key(_SPACE)) FRAME; END // Esperar a que se suelte la tecla
+      END
+      
+      FRAME;
+    END
+    
+    // Cerrar archivo de log
+    fwrite(archivo_log, "=== Fin del programa ===\\n");
+    fclose(archivo_log);
+  END
+options:
+  verbose: true
+  timeout: 30
