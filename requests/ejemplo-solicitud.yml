@@ -1,0 +1,6 @@
+id: "ejemplo-20250321-001"
+type: "compile"
+source_file: "examples/hola_mundo.prg"
+options:
+  verbose: true
+  timeout: 30
