@@ -1,0 +1,74 @@
+id: "entrenamiento-20250321-001"
+type: "compile"
+source_file: "examples/entrenamiento_basico.prg"
+source_code: |
+  // Programa de entrenamiento básico en Gemix
+  // Objetivo: Probar funcionalidades básicas y aprender de los errores
+  
+  PROGRAM entrenamiento_basico;
+  
+  GLOBAL
+    int x = 320;
+    int y = 240;
+    int radio = 30;
+    int velocidad_x = 5;
+    int velocidad_y = 3;
+    int color = 4;
+    string mensaje = "Entrenamiento en Gemix";
+  
+  PRIVATE
+    // Función para actualizar la posición de la pelota
+    FUNCTION actualizar_posicion()
+    BEGIN
+      // Mover la pelota
+      x += velocidad_x;
+      y += velocidad_y;
+      
+      // Rebotar en los bordes
+      IF (x < radio OR x > 640 - radio)
+        velocidad_x = -velocidad_x;
+      END
+      
+      IF (y < radio OR y > 480 - radio)
+        velocidad_y = -velocidad_y;
+      END
+    END
+    
+    // Función para dibujar la pelota
+    FUNCTION dibujar_pelota()
+    BEGIN
+      circle(x, y, radio);
+      write(x, y - radio - 20, color, mensaje);
+    END
+  
+  BEGIN
+    // Configuración de la pantalla
+    set_mode(640, 480);
+    set_title("Entrenamiento Gemix - Pelota rebotando");
+    
+    // Bucle principal
+    WHILE (NOT key(_ESC))
+      // Limpiar pantalla
+      clear_screen();
+      
+      // Actualizar posición
+      actualizar_posicion();
+      
+      // Dibujar pelota
+      dibujar_pelota();
+      
+      // Mostrar instrucciones
+      write(320, 20, 15, "Pulsa ESC para salir");
+      write(320, 40, 15, "Entrenamiento de IA para Gemix");
+      
+      // Cambiar color con espacio
+      IF (key(_SPACE))
+        color = (color % 15) + 1;
+      END
+      
+      FRAME;
+    END
+  END
+options:
+  verbose: true
+  timeout: 30
