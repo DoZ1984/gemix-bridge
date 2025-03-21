@@ -1,0 +1,36 @@
+id: "prueba-20250321-003"
+type: "compile"
+source_file: "examples/prueba_sistema.prg"
+source_code: |
+  // Programa de prueba para verificar que el sistema funciona
+  // Este es un programa simple que muestra texto en pantalla
+  
+  PROGRAM prueba_sistema;
+  
+  GLOBAL
+    int contador = 0;
+  
+  BEGIN
+    // Configuración de la pantalla
+    set_mode(640, 480);
+    set_title("Prueba del Sistema Gemix-Bridge");
+    
+    // Bucle principal
+    WHILE (NOT key(_ESC) AND contador < 1000)
+      // Limpiar pantalla
+      clear_screen();
+      
+      // Incrementar contador
+      contador++;
+      
+      // Mostrar mensaje
+      write(320, 200, 10, "¡El sistema Gemix-Bridge funciona!");
+      write(320, 240, 12, "Contador: " + contador);
+      write(320, 280, 14, "Pulsa ESC para salir");
+      
+      FRAME;
+    END
+  END
+options:
+  verbose: true
+  timeout: 30
