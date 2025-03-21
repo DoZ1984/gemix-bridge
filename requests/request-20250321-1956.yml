@@ -1,0 +1,182 @@
+id: "request-20250321-1956"
+type: "compile"
+source_file: "examples/pong_simple.prg"
+source_code: |
+  // Juego de Pong simple en Gemix
+  // Controles: W/S para jugador 1, Arriba/Abajo para jugador 2
+  
+  PROGRAM pong_simple;
+  
+  CONST
+    // Configuración de pantalla
+    ANCHO = 800;
+    ALTO = 600;
+    
+    // Configuración de palas
+    PALA_ANCHO = 20;
+    PALA_ALTO = 100;
+    PALA_VELOCIDAD = 5;
+    MARGEN_LATERAL = 50;
+    
+    // Configuración de pelota
+    PELOTA_RADIO = 10;
+    PELOTA_VELOCIDAD_INICIAL = 4;
+    
+    // Colores
+    COLOR_FONDO = 0x000000;  // Negro
+    COLOR_PALA = 0xFFFFFF;   // Blanco
+    COLOR_PELOTA = 0xFF0000; // Rojo
+    COLOR_TEXTO = 0xFFFFFF;  // Blanco
+  
+  GLOBAL
+    // Posiciones de las palas
+    pala1_y = ALTO / 2 - PALA_ALTO / 2;
+    pala2_y = ALTO / 2 - PALA_ALTO / 2;
+    
+    // Posición y velocidad de la pelota
+    pelota_x = ANCHO / 2;
+    pelota_y = ALTO / 2;
+    pelota_dx = PELOTA_VELOCIDAD_INICIAL;
+    pelota_dy = PELOTA_VELOCIDAD_INICIAL;
+    
+    // Puntuaciones
+    puntos_j1 = 0;
+    puntos_j2 = 0;
+    
+    // Estado del juego
+    juego_activo = TRUE;
+  
+  // Proceso para mover las palas
+  PROCESS mover_palas()
+  BEGIN
+    // Mover pala del jugador 1 (W/S)
+    IF key(KEY_W) AND pala1_y > 0 THEN
+      pala1_y = pala1_y - PALA_VELOCIDAD;
+    END
+    
+    IF key(KEY_S) AND pala1_y < ALTO - PALA_ALTO THEN
+      pala1_y = pala1_y + PALA_VELOCIDAD;
+    END
+    
+    // Mover pala del jugador 2 (Arriba/Abajo)
+    IF key(KEY_UP) AND pala2_y > 0 THEN
+      pala2_y = pala2_y - PALA_VELOCIDAD;
+    END
+    
+    IF key(KEY_DOWN) AND pala2_y < ALTO - PALA_ALTO THEN
+      pala2_y = pala2_y + PALA_VELOCIDAD;
+    END
+  END
+  
+  // Proceso para actualizar la pelota
+  PROCESS actualizar_pelota()
+  BEGIN
+    // Mover la pelota
+    pelota_x = pelota_x + pelota_dx;
+    pelota_y = pelota_y + pelota_dy;
+    
+    // Rebotar en los bordes superior e inferior
+    IF pelota_y < PELOTA_RADIO OR pelota_y > ALTO - PELOTA_RADIO THEN
+      pelota_dy = -pelota_dy;
+    END
+    
+    // Comprobar colisión con pala 1
+    IF pelota_x - PELOTA_RADIO < MARGEN_LATERAL + PALA_ANCHO AND
+       pelota_y > pala1_y AND pelota_y < pala1_y + PALA_ALTO THEN
+      pelota_dx = ABS(pelota_dx) * 1.1; // Aumentar velocidad en 10%
+      // Cambiar ángulo según donde golpee en la pala
+      pelota_dy = (pelota_y - (pala1_y + PALA_ALTO / 2)) / 10;
+    END
+    
+    // Comprobar colisión con pala 2
+    IF pelota_x + PELOTA_RADIO > ANCHO - MARGEN_LATERAL - PALA_ANCHO AND
+       pelota_y > pala2_y AND pelota_y < pala2_y + PALA_ALTO THEN
+      pelota_dx = -ABS(pelota_dx) * 1.1; // Aumentar velocidad en 10%
+      // Cambiar ángulo según donde golpee en la pala
+      pelota_dy = (pelota_y - (pala2_y + PALA_ALTO / 2)) / 10;
+    END
+    
+    // Comprobar si la pelota sale por la izquierda
+    IF pelota_x < 0 THEN
+      puntos_j2 = puntos_j2 + 1;
+      reiniciar_pelota();
+    END
+    
+    // Comprobar si la pelota sale por la derecha
+    IF pelota_x > ANCHO THEN
+      puntos_j1 = puntos_j1 + 1;
+      reiniciar_pelota();
+    END
+  END
+  
+  // Función para reiniciar la pelota
+  FUNCTION reiniciar_pelota()
+  BEGIN
+    pelota_x = ANCHO / 2;
+    pelota_y = ALTO / 2;
+    pelota_dx = PELOTA_VELOCIDAD_INICIAL * (RAND(0, 1) * 2 - 1); // Dirección aleatoria
+    pelota_dy = PELOTA_VELOCIDAD_INICIAL * (RAND(0, 1) * 2 - 1); // Dirección aleatoria
+  END
+  
+  // Proceso para dibujar todos los elementos
+  PROCESS dibujar()
+  BEGIN
+    // Limpiar pantalla
+    clear_screen(COLOR_FONDO);
+    
+    // Dibujar palas
+    rect(MARGEN_LATERAL, pala1_y, PALA_ANCHO, PALA_ALTO, COLOR_PALA);
+    rect(ANCHO - MARGEN_LATERAL - PALA_ANCHO, pala2_y, PALA_ANCHO, PALA_ALTO, COLOR_PALA);
+    
+    // Dibujar pelota
+    circle(pelota_x, pelota_y, PELOTA_RADIO, COLOR_PELOTA);
+    
+    // Dibujar puntuaciones
+    write(ANCHO / 4, 30, COLOR_TEXTO, "Jugador 1: " + puntos_j1);
+    write(ANCHO * 3 / 4, 30, COLOR_TEXTO, "Jugador 2: " + puntos_j2);
+    
+    // Dibujar línea central
+    FOR y = 0 TO ALTO STEP 20
+      rect(ANCHO / 2 - 2, y, 4, 10, COLOR_PALA);
+    END
+    
+    // Mostrar controles
+    write(10, ALTO - 20, COLOR_TEXTO, "Controles: W/S para Jugador 1, Arriba/Abajo para Jugador 2, ESC para salir");
+  END
+  
+  BEGIN
+    // Configurar modo gráfico
+    set_mode(ANCHO, ALTO);
+    
+    // Mostrar mensaje de inicio
+    clear_screen(COLOR_FONDO);
+    write(ANCHO / 2 - 100, ALTO / 2, COLOR_TEXTO, "¡PONG GEMIX!");
+    write(ANCHO / 2 - 150, ALTO / 2 + 30, COLOR_TEXTO, "Presiona ESPACIO para comenzar");
+    FRAME;
+    
+    // Esperar a que se pulse ESPACIO
+    WHILE NOT key(KEY_SPACE)
+      FRAME;
+    END
+    
+    // Bucle principal del juego
+    WHILE juego_activo
+      // Procesar entrada y actualizar estado
+      mover_palas();
+      actualizar_pelota();
+      
+      // Dibujar
+      dibujar();
+      
+      // Salir si se pulsa ESC
+      IF key(KEY_ESCAPE) THEN
+        juego_activo = FALSE;
+      END
+      
+      // Actualizar pantalla
+      FRAME;
+    END
+  END
+options:
+  verbose: true
+  timeout: 30
