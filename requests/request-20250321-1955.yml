@@ -1,0 +1,97 @@
+id: "request-20250321-1955"
+type: "compile"
+source_file: "examples/animacion_basica.prg"
+source_code: |
+  // Programa de animación básica en Gemix
+  // Muestra un texto que rebota en la pantalla
+  // y un círculo que sigue al texto
+  
+  PROGRAM animacion_basica;
+  
+  CONST
+    ANCHO_PANTALLA = 640;
+    ALTO_PANTALLA = 480;
+    VELOCIDAD = 3;
+    COLOR_TEXTO = 0xFFFFFF; // Blanco
+    COLOR_CIRCULO = 0xFF0000; // Rojo
+    COLOR_FONDO = 0x000080; // Azul oscuro
+  
+  GLOBAL
+    // Posición del texto
+    x = ANCHO_PANTALLA / 2;
+    y = ALTO_PANTALLA / 2;
+    
+    // Dirección del movimiento
+    dx = VELOCIDAD;
+    dy = VELOCIDAD;
+    
+    // Contador de frames
+    frame_count = 0;
+    
+    // Tamaño del círculo
+    radio = 20;
+  
+  PROCESS actualizar_posicion()
+  BEGIN
+    // Actualizar posición
+    x = x + dx;
+    y = y + dy;
+    
+    // Comprobar colisiones con los bordes
+    IF x < 100 OR x > ANCHO_PANTALLA - 100 THEN
+      dx = -dx; // Invertir dirección horizontal
+    END
+    
+    IF y < 50 OR y > ALTO_PANTALLA - 50 THEN
+      dy = -dy; // Invertir dirección vertical
+    END
+    
+    // Aumentar contador de frames
+    frame_count = frame_count + 1;
+    
+    // Modificar tamaño del círculo (efecto pulsante)
+    radio = 20 + (SIN(frame_count * 0.1) * 10);
+  END
+  
+  PROCESS dibujar()
+  BEGIN
+    // Limpiar pantalla con color de fondo
+    clear_screen(COLOR_FONDO);
+    
+    // Dibujar círculo
+    circle(x, y, radio, COLOR_CIRCULO);
+    
+    // Dibujar texto
+    write(x, y - 10, COLOR_TEXTO, "¡Hola desde Gemix!");
+    
+    // Mostrar contador de frames
+    write(10, 10, COLOR_TEXTO, "Frames: " + frame_count);
+    
+    // Mostrar instrucciones
+    write(10, ALTO_PANTALLA - 20, COLOR_TEXTO, "Presiona ESC para salir");
+  END
+  
+  BEGIN
+    // Configurar modo gráfico
+    set_mode(ANCHO_PANTALLA, ALTO_PANTALLA);
+    
+    // Bucle principal
+    LOOP
+      // Actualizar posición
+      actualizar_posicion();
+      
+      // Dibujar elementos
+      dibujar();
+      
+      // Comprobar tecla ESC para salir
+      IF key(KEY_ESCAPE) THEN
+        BREAK;
+      END
+      
+      // Actualizar pantalla
+      FRAME;
+    END
+  END
+options:
+  verbose: true
+  timeout: 30
