@@ -1,0 +1,36 @@
+name: Procesar solicitud de compilación
+
+on:
+  push:
+    paths:
+      - 'requests/*.yml'
+  workflow_dispatch:
+
+jobs:
+  process-request:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v3
+      
+      - name: Configurar permisos de ejecución
+        run: |
+          chmod +x scripts/process-request.sh
+          chmod +x scripts/prepare-environment.sh
+      
+      - name: Preparar entorno
+        run: |
+          ./scripts/prepare-environment.sh
+      
+      - name: Procesar solicitud
+        run: |
+          ./scripts/process-request.sh
+      
+      - name: Commit resultados
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add results/
+          git add requests/history/
+          git commit -m "Resultados de compilación para solicitud" || echo "No hay cambios para commit"
+          git push
