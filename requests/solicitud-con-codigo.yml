@@ -1,0 +1,44 @@
+id: "ejemplo-20250321-002"
+type: "compile"
+source_file: "examples/test_directo.prg"
+source_code: |
+  // Ejemplo de código generado directamente desde la solicitud
+  PROGRAM test_directo;
+  
+  GLOBAL
+    int x = 100;
+    int y = 100;
+    int color = 4;
+  
+  BEGIN
+    // Configuración de la pantalla
+    set_mode(640, 480);
+    set_title("Prueba de código directo");
+    
+    // Bucle principal
+    WHILE (NOT key(_ESC))
+      // Limpiar pantalla
+      clear_screen();
+      
+      // Dibujar un círculo
+      circle(x, y, 20);
+      
+      // Mostrar texto
+      write(320, 240, color, "Este código fue generado directamente");
+      write(320, 260, color, "desde una solicitud YAML");
+      
+      // Cambiar posición
+      IF (key(_RIGHT)) x += 5; END
+      IF (key(_LEFT)) x -= 5; END
+      IF (key(_UP)) y -= 5; END
+      IF (key(_DOWN)) y += 5; END
+      
+      // Alternar color
+      IF (key(_SPACE)) color = (color % 15) + 1; END
+      
+      FRAME;
+    END
+  END
+options:
+  verbose: true
+  timeout: 30
